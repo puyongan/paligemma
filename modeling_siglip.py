@@ -118,6 +118,21 @@ class SiglipAttention(nn.Module):
             # Multiply the attention weights by the value states. attn_output: [Batch_Size, Num_Heads, Num_Pathes, Head_Dim]
             attn_output = torch.matmul(attn_weights, value_states)
 
+            if attn_output.size() != (batch_size, self.num_heads, seq_len, self.head_dim):
+                raise ValueError(
+                    f"Attention Weights should be of size {(batch_size, self.num_heads, seq_len, self.head_dim)}, but is"
+                    f"{attn_output.size()}"
+                )
+
+            # [Batch_Size, Num_Heads, Num_Pathes, Head_Dim] -> [Batch_Size, Num_Pathes, Num_Heads, Head_Dim]
+            attn_output = attn_output.transpose(1, 2).contiguous()
+            # [Batch_Size, Num_Pathes, Num_Heads, Head_Dim] -> [Batch_Size, Num_Pathes, Embed_Dim]
+            attn_output = attn_output.reshape(batch_size, seq_len, self.embed_dim)
+            # [Batch_Size, Num_Patches, Embed_Dim]
+            attn_output = self.out_proj(attn_output)
+            
+            return attn_output, attn_weights
+
 
 
 class SiglipMLP(nn.Module):
@@ -168,6 +183,27 @@ class SiglipEncoderLayer(nn.Module):
 
         return hidden_states
 
+
+class SiglipEncoder(nn.Module):
+    def __init__(self, config: SiglipVisionConfig):
+        super().__init__()
+        self.config = config
+        self.layers = nn.ModuleList(
+            [SiglipEncoderLayer(config) for _ in range(config.num_hidden_layers)]
+        )
+
+    def forward(
+        self,
+        inputs_embeds: torch.Tensor
+    ) -> torch.Tensor:
+        # imputs_embeds: [Batch_Size, Num_Patches, Embed_Dim]
+        hidden_states = inputs_embeds
+
+        for encoder_layer in self.layers:
+            # [Batch_Size, Num_Patches, Embed_Dim] -> [Batch_Size, Num_Patches, Embed_Dim]
+            hidden_states = encoder_layer(hidden_states)
+        
+        return hidden_states
 
 
 
