@@ -393,7 +393,7 @@ class GemmaForCausalLM(nn.Module):
     def get_input_embeddings(self):
         return self.model.embed_tokens
     
-    def tie_weigths(self):
+    def tie_weights(self):
         self.lm_head.weight = self.model.embed_tokens.weight
 
     def forward(
