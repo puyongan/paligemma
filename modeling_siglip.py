@@ -32,7 +32,7 @@ class SiglipVisionConfig:
         self.num_image_tokens = num_image_tokens
 
 class SiglipVisionEmbeddings(nn.Module):
-    def _init_(self, config: SiglipVisionConfig):
+    def __init__(self, config: SiglipVisionConfig):
         super().__init__()
         self.config = config
         self.embed_dim = config.hidden_size

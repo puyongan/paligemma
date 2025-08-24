@@ -1,7 +1,7 @@
 #!/bin/bash
 
-MODEL_PATH="$HOME/projects/paligemma-weights/paligemma-3b-pt-224"
-PROMPT="this building is "
+MODEL_PATH="/workspace/paligemma-3b-pt-224"
+PROMPT="the color of flower is "
 IMAGE_FILE_PATH="test_images/pic1.jpeg"
 MAX_TOKENS_TO_GENERATE=100
 TEMPERATURE=0.8
