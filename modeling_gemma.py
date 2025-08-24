@@ -241,25 +241,25 @@ class GemmaAttention(nn.Module):
         # [Batch_Size, Seq_Len, Num_Heads_KV * Head_Dim]
         key_states = self.k_proj(hidden_states)
         # [Batch_Size, Seq_Len, Num_Heads_KV * Head_Dim]
-        value_stastes = self.v_proj(hidden_states)
+        value_states = self.v_proj(hidden_states)
         # [Batch_Size, Num_Heads_Q, Seq_Len, Head_Dim]
         query_states = query_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
         # [Batch_Size, Num_Heads_KV, Seq_Len, Head_Dim]
         key_states = key_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
         # [Batch_Size, Num_Heads_KV, Seq_Len, Head_Dim]
-        value_stastes = value_stastes.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
+        value_states = value_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
 
         # [Batch_Size, Seq_Len, Head_Dim], [Batch_Size, Seq_Len, Head_Dim]
-        cos, sin = self.rotary_emb(value_stastes, position_ids, seq_len=None)
+        cos, sin = self.rotary_emb(value_states, position_ids, seq_len=None)
         # [Batch_Size, Num_Heads_Q, Seq_Len, Head_Dim], [Batch_Size, Num_Heads_KV, Seq_Len, Head_Dim]
         query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin)
 
         if kv_cache is not None:
-            key_states, value_stastes = kv_cache.update(key_states, value_stastes, self.layer_idx)
+            key_states, value_states = kv_cache.update(key_states, value_states, self.layer_idx)
 
         # Repeat the key and values to match the number of heads of the query
         key_states = repeat_kv(key_states, self.num_key_value_groups)
-        value_stastes = repeat_kv(value_stastes, self.num_key_value_groups)
+        value_states = repeat_kv(value_states, self.num_key_value_groups)
 
         # Perform the calculation as usual, Q * K^T / sqrt(head_dim). Shape: [Batch_Size, Num_Heads_Q, Seq_Len_Q, Seq_Len_KV]
         attn_weights = torch.matmul(query_states, key_states.transpose(2, 3)) / math.sqrt(self.head_dim)
@@ -273,7 +273,7 @@ class GemmaAttention(nn.Module):
         # Apply the dropout
         attn_weights = nn.functional.dropout(attn_weights, p=self.attention_dropout, training=self.training)
         # Multiply by the values. [Batch_Size, Num_Heads_Q, Seq_Len_Q, Seq_Len_KV] X [Batch_Size, Num_Heads_KV, Seq_Len_KV, Head_Dim] -> [Batch_Size, ]
-        attn_output = torch.matmul(attn_weights, value_stastes)
+        attn_output = torch.matmul(attn_weights, value_states)
 
         if attn_output.size() != (bsz, self.num_heads, q_len, self.head_dim):
             raise ValueError(
@@ -450,7 +450,7 @@ class PaliGemmaForConditionalGeneration(nn.Module):
 
         self.pad_token_id = self.config.pad_token_id if self.config.pad_token_id is not None else -1
 
-    def tie_weigths(self):
+    def tie_weights(self):
         return self.language_model.tie_weights()
     
     def _merge_input_ids_with_image_features(
