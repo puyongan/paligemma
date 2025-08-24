@@ -62,7 +62,7 @@ class SiglipVisionEmbeddings(nn.Module):
         # Num_Patches_H = height // patch_size, Num_Patches_W = width // patch_size
         patch_embeds = self.patch_embedding(pixel_values)
         # [Batch_Size, Embed_Dim, Num_Patches_H, Num_Patches_W] -> [Batch_Size, Embed_Dim, Num_Patches]
-        embeddings = patch_embeds.flattern(2)
+        embeddings = patch_embeds.flatten(2)
         # [Batch_Size, Embed_Dim, Num_Patches] -> [Batch_Size, Num_Patches, Embed_Dim]
         embeddings = embeddings.transpose(1, 2)
         # add position embeddings
@@ -196,7 +196,7 @@ class SiglipEncoder(nn.Module):
         self,
         inputs_embeds: torch.Tensor
     ) -> torch.Tensor:
-        # imputs_embeds: [Batch_Size, Num_Patches, Embed_Dim]
+        # inputs_embeds: [Batch_Size, Num_Patches, Embed_Dim]
         hidden_states = inputs_embeds
 
         for encoder_layer in self.layers:
@@ -222,7 +222,7 @@ class SiglipVisionTransformer(nn.Module):
         # pixel_values: [Batch_Size, Channels, Height, Width] -> [Batch_Size, Num_Patches, Embed_Dim]
         hidden_states = self.embeddings(pixel_values)
 
-        last_hidden_state = self.encoder(imputs_embeds=hidden_states)
+        last_hidden_state = self.encoder(inputs_embeds=hidden_states)
 
         last_hidden_state = self.post_layernorm(last_hidden_state)
 

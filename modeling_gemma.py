@@ -167,11 +167,11 @@ class GemmaRotaryEmbedding(nn.Module):
         self.inv_freq.to(x.device)
         # Copy the inv_freq tensor for batch in the sequence
         # inv_freq_expanded: [Batch_Size, Head_Dim // 2, 1]
-        inv_freq_expanded = self.inv_freq[None].float().expand(position_ids.shape[0], -1, 1)
+        inv_freq_expanded = self.inv_freq[None, :, None].float().expand(position_ids.shape[0], -1, 1)
         # position_ids_expanded: [Batch_Size, 1, Seq_Len]
         position_ids_expanded = position_ids[:, None, :].float()
         device_type = x.device.type
-        device_type = device_type if isinstance(device_type. str) and device_type != "mps" else "cpu"
+        device_type = device_type if isinstance(device_type, str) and device_type != "mps" else "cpu"
         with torch.autocast(device_type=device_type, enabled=False):
             # Multiply each theta by the position (which is the argument of the sin and cos functions)
             # freqs: [Batch_Size, Head_Dim // 2, 1] @ [Batch_Size, 1, Seq_Len] --> [Batch_Size, Seq_Len, Head_Dim // 2]

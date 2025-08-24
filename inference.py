@@ -34,7 +34,7 @@ def get_model_inputs(
     image = Image.open(image_file_path)
     images = [image]
     prompts = [prompt]
-    model_inputs = processor(text=prompts, images=images)
+    model_inputs = processor(text=prompts, images=images, max_length=2048)
     model_inputs = move_inputs_to_device(model_inputs, device)
     return model_inputs
 
