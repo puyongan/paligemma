@@ -41,6 +41,6 @@ def load_hf_model(model_path: str, device: str) -> Tuple[PaliGemmaForConditional
     model.load_state_dict(tensors, strict=False)
 
     # Tie weigths
-    model.tie_weigths()
+    model.tie_weights()
 
     return (model, tokenizer)
