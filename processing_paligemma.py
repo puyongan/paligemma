@@ -19,12 +19,12 @@ def add_image_tokens_to_prompt(prefix_prompt, bos_token, image_seq_len, image_to
 def resize(
     image: Image,
     size: Tuple[int, int],
-    resamle: Image.Resampling = None,
+    resample: Image.Resampling = None,
     reducing_gap: Optional[int] = None,
 ) -> np.ndarray:
     height, width = size
     resized_image = image.resize(
-        (width, height), resamle=resamle, reducing_gap=reducing_gap
+        (width, height), resample=resample, reducing_gap=reducing_gap
     )
     return resized_image
 
@@ -54,9 +54,9 @@ def process_images(
     image_mean: Optional[Union[float, List[float]]] = None,
     image_std: Optional[Union[float, List[float]]] = None,
 ) -> List[np.ndarray]:
-    height, weigth = size[0], size[1]
+    height, width = size[0], size[1]
     images = [
-        resize(image=image, size=(height, weigth), resample=resample) for image in images
+        resize(image=image, size=(height, width), resample=resample) for image in images
     ]
     # Convert each image to a numpy array
     images = [np.array(image) for image in images]
@@ -65,7 +65,7 @@ def process_images(
     # Normalize the images to have mean 0 and standard deviation 1
     images = [normalize(image, mean=image_mean, std=image_std) for image in images]
     # Move the channel dimension to the first dimension. The model expects images in the format [Channel, Height, Width]
-    images = [images.transpose(2, 0, 1) for image in images]
+    images = [image.transpose(2, 0, 1) for image in images]
     return images
 
 class PaliGemmaProcessor:
